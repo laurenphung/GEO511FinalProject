@@ -1,5 +1,12 @@
 [
   {
+    "objectID": "data/Readme.html",
+    "href": "data/Readme.html",
+    "title": "Data Folder",
+    "section": "",
+    "text": "Data Folder\nPlace any data needed by your analysis in this folder. Please do not store large files here. Then read in any data using the ‘data’ path. For example, read_csv(\"data/data.csv\")."
+  },
+  {
     "objectID": "index.html",
     "href": "index.html",
     "title": "Rubik’s Cube Competition Density and Correlation with 3x3 Speed",
@@ -11,7 +18,7 @@
     "href": "index.html#download-and-clean-all-required-data",
     "title": "Rubik’s Cube Competition Density and Correlation with 3x3 Speed",
     "section": "Download and clean all required data",
-    "text": "Download and clean all required data\n\nn=20\ndata=data.frame(x=runif(n,-180,180),\n                y=runif(n,-60,60),\n                size = runif(n, 5, 20),\n                category = factor(\n                  sample(letters[1:5], n, replace = TRUE)\n                  ),\n                value = rnorm(n))\n\ndata %&gt;% \n  slice(1:10) %&gt;% #show only 1:n rows\n  kable(digits=2,align=\"c\")%&gt;% #make table and round to two digits\n  kable_styling(bootstrap_options = \n                  c(\"striped\", \"hover\", \"condensed\", \"responsive\")) #apply other formatting\n\n\n\n\nx\ny\nsize\ncategory\nvalue\n\n\n\n\n36.32\n8.57\n17.81\ne\n1.05\n\n\n-37.40\n-17.49\n10.41\nd\n1.46\n\n\n100.94\n-59.80\n17.78\nc\n-0.68\n\n\n-66.51\n-43.04\n12.24\nc\n-0.93\n\n\n-90.39\n39.92\n11.95\na\n-0.67\n\n\n-132.75\n-56.82\n6.37\nb\n-0.61\n\n\n-27.84\n48.86\n7.07\ne\n-0.54\n\n\n-157.44\n-55.62\n16.32\nd\n-1.86\n\n\n-169.79\n2.15\n7.95\na\n-0.25\n\n\n33.63\n16.66\n8.03\nc\n-1.86\n\n\n\n\nAdd any additional processing steps here."
+    "text": "Download and clean all required data\n\nn=20\ndata=data.frame(x=runif(n,-180,180),\n                y=runif(n,-60,60),\n                size = runif(n, 5, 20),\n                category = factor(\n                  sample(letters[1:5], n, replace = TRUE)\n                  ),\n                value = rnorm(n))\n\ndata %&gt;% \n  slice(1:10) %&gt;% #show only 1:n rows\n  kable(digits=2,align=\"c\")%&gt;% #make table and round to two digits\n  kable_styling(bootstrap_options = \n                  c(\"striped\", \"hover\", \"condensed\", \"responsive\")) #apply other formatting\n\n\n\n\nx\ny\nsize\ncategory\nvalue\n\n\n\n\n-171.54\n-31.21\n6.96\nb\n1.98\n\n\n-41.75\n-12.41\n15.78\nc\n-0.43\n\n\n-133.02\n-26.73\n5.71\na\n0.66\n\n\n56.75\n13.07\n11.25\nd\n-1.94\n\n\n72.40\n5.98\n12.03\nd\n0.38\n\n\n81.05\n-54.44\n11.05\ne\n-1.35\n\n\n-50.13\n25.92\n18.71\nd\n-0.83\n\n\n125.57\n55.85\n16.76\nb\n-2.14\n\n\n60.76\n43.86\n17.26\ne\n0.07\n\n\n-118.58\n58.75\n5.32\na\n-0.02\n\n\n\n\nAdd any additional processing steps here."
   },
   {
     "objectID": "about.html",
@@ -19,12 +26,5 @@
     "title": "About",
     "section": "",
     "text": "About this site\n\n1 + 1\n\n[1] 2"
-  },
-  {
-    "objectID": "data/Readme.html",
-    "href": "data/Readme.html",
-    "title": "Data Folder",
-    "section": "",
-    "text": "Data Folder\nPlace any data needed by your analysis in this folder. Please do not store large files here. Then read in any data using the ‘data’ path. For example, read_csv(\"data/data.csv\")."
   }
 ]
