@@ -1,42 +1,35 @@
 ---
-title: "My Final Project Template"
-author: Your name here
-subtitle: Subtitle here if desired
-date: today
+title: "Rubik’s Cube Competition Density and Correlation with 3x3 Speed"
+author: "Lauren Phung"
+subtitle: "Are the fastest speedcubers the ones who have the most competitions near them?"
+date: October 27, 2025
 date-format: long
 ---
 
 # Introduction
 
-\[\~ 200 words\]
+The Rubik's Cube is a popular 6-sided twisty puzzle first invented in the 1974 by Erno Rubik. Since the late 2000s, the cube's popularity has made a comeback. Many people enjoy the competitive aspect of the cube, aiming to solve it as fast as possible. The current 3x3 single world record is 3.05 seconds by Xuanyi Geng from China.
 
-Clearly stated background and questions / hypotheses / problems being addressed. Sets up the analysis in an interesting and compelling way. Include figures if you like.
+Official Rubik's Cube competitions are governed by the World Cube Association (WCA), an entirely volunteer run non-profit organization. More than 273,000 people have competed in WCA sanctioned competitions. Competitions are held every week worldwide, but the geographic distribution of competition certainly isn't even.     
+
+My project aims to determine the relationship between the density of competitions in a given country and the speed of a country's competitors. I have 2 main research questions: How are World Cube Association competitions geographically distributed? Is the density of WCA competitions correlated to the speed of the competitors in the region?
+
 
 # Materials and methods
 
-\[\~ 200 words\]
+My research questions will be answered with the WCA Results Export. This is a massive dataset that is updated every week. It contains data about each competitor, the number of competitions attended, results and rankings, citizenship, gender, records, and world championship podiums. It also includes information about every competition: location, the number of competitors, what events were held, podium finishers.
 
-Narrative: Clear narrative description of the data sources and methods. Includes data from at least two sources that were integrated / merged in R.
+There are many metrics to determine 3x3 speed. The WCA records the competitors' single and average when they compete. The 'single' is the fastest single attempt for the puzzle. The average is done taken after 5 solves, with the arithmetic mean taken after the slowest and fastest times are removed. Speedcubers acknowledge that good singles may be achieved with luck, while fast averages require more skill. 
 
-Code: The code associated with the project is well organized and easy to follow. Demonstrates mastery of R graphics and functions.
+3x3 Speed for each country will be determined with 3 variables:
 
-Data: The underlying data are publicly accessible via the web and downloaded/accessed within the Rmd script. If you want to use your own data, you must make it available on a website (e.g. Figshare) so that others are able to re-run your code.
+1.  Mean of the top 25 3x3 averages
+2.  Number of 3x3 Podiums at World Championships
+3.  Number of 3x3 average world records
 
-You can do bullets like this:
+These 3 variables will be compared to the number of competitions in each country. 
 
--   The first most important thing
--   The second most important thing
--   The third most important thing
-
-You can do numbers like this:
-
-1.  The first most important thing
-2.  The second most important thing
-3.  The third most important thing
-
-See <http://rmarkdown.rstudio.com/> for all the amazing things you can do.
-
-Here's my first code chunk.
+I also want to explore each competitor's speed in relation to the density of competition. I will calculate the geographic center of competitions for each cuber and determine whether faster 3x3 competitors live in regions with more competitions. 
 
 ```{r}
 x=3+4

@@ -11,6 +11,6 @@ website:
 
 format:
   html:
-    theme: cosmo
+    css: style.css
     includes:
         after_body: include/after_body.html
