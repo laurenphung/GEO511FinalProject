@@ -11,14 +11,42 @@
     "href": "index.html",
     "title": "Rubik’s Cube Competition Density and Correlation with 3x3 Speed",
     "section": "",
-    "text": "The Rubik’s Cube is a popular 6-sided twisty puzzle first invented in the 1974 by Erno Rubik. Since the late 2000s, the cube’s popularity has made a comeback. Many people enjoy the competitive aspect of the cube, aiming to solve it as fast as possible. The current 3x3 single world record is 3.05 seconds by Xuanyi Geng from China.\nOfficial Rubik’s Cube competitions are governed by the World Cube Association (WCA), an entirely volunteer run non-profit organization. More than 273,000 people have competed in WCA sanctioned competitions. Competitions are held every week worldwide, but the geographic distribution of competition certainly isn’t even.\nMy project aims to determine the relationship between the density of competitions in a given country and the speed of a country’s competitors. I have 2 main research questions: How are World Cube Association competitions geographically distributed? Is the density of WCA competitions correlated to the speed of the competitors in the region?"
+    "text": "The Rubik’s Cube is a popular 6-sided twisty puzzle first invented in the 1974 by Erno Rubik. Since the late 2000s, the cube’s popularity has made a comeback. Many people enjoy the competitive aspect of the cube, aiming to solve it as fast as possible. The current 3x3 single world record is 3.05 seconds by Xuanyi Geng from China. The current 3x3 average world record is 3.90 seconds by Yiheng Wang from China.\nOfficial Rubik’s Cube competitions are governed by the World Cube Association (WCA), an entirely volunteer run non-profit organization that was founded in 2004. More than 273,000 people have competed in WCA sanctioned competitions. Competitions are held every week worldwide, but the geographic distribution of competition certainly isn’t even. The United States has had over 2,000 cube competitions while other countries have had less than 10 or even none.\nMy project aims to determine the relationship between the density of competitions in a given country and the speed of a country’s competitors. I have 2 main research questions: How are World Cube Association competitions geographically distributed? Is the density of WCA competitions correlated to the speed of the competitors in the region?"
   },
   {
-    "objectID": "index.html#download-and-clean-all-required-data",
-    "href": "index.html#download-and-clean-all-required-data",
+    "objectID": "index.html#libraries",
+    "href": "index.html#libraries",
     "title": "Rubik’s Cube Competition Density and Correlation with 3x3 Speed",
-    "section": "Download and clean all required data",
-    "text": "Download and clean all required data\n\nn=20\ndata=data.frame(x=runif(n,-180,180),\n                y=runif(n,-60,60),\n                size = runif(n, 5, 20),\n                category = factor(\n                  sample(letters[1:5], n, replace = TRUE)\n                  ),\n                value = rnorm(n))\n\ndata %&gt;% \n  slice(1:10) %&gt;% #show only 1:n rows\n  kable(digits=2,align=\"c\")%&gt;% #make table and round to two digits\n  kable_styling(bootstrap_options = \n                  c(\"striped\", \"hover\", \"condensed\", \"responsive\")) #apply other formatting\n\n\n\n\nx\ny\nsize\ncategory\nvalue\n\n\n\n\n-171.54\n-31.21\n6.96\nb\n1.98\n\n\n-41.75\n-12.41\n15.78\nc\n-0.43\n\n\n-133.02\n-26.73\n5.71\na\n0.66\n\n\n56.75\n13.07\n11.25\nd\n-1.94\n\n\n72.40\n5.98\n12.03\nd\n0.38\n\n\n81.05\n-54.44\n11.05\ne\n-1.35\n\n\n-50.13\n25.92\n18.71\nd\n-0.83\n\n\n125.57\n55.85\n16.76\nb\n-2.14\n\n\n60.76\n43.86\n17.26\ne\n0.07\n\n\n-118.58\n58.75\n5.32\na\n-0.02\n\n\n\n\nAdd any additional processing steps here."
+    "section": "Libraries",
+    "text": "Libraries\n\nlibrary(tidyverse)\nlibrary(leaflet)\nlibrary(knitr)\nlibrary(kableExtra)\nlibrary(htmlwidgets)\nlibrary(widgetframe)\nlibrary(sf)\nlibrary(maps)\nlibrary(sfhotspot)\nlibrary(dplyr)\nlibrary(ggplot2)\nlibrary(rnaturalearth)\nlibrary(rnaturalearthdata)\nlibrary(leaflet)\nlibrary(countrycode)\nknitr::opts_chunk$set(widgetframe_widgets_dir = 'widgets' ) \nknitr::opts_chunk$set(cache=TRUE)  # cache the results for quick compiling"
+  },
+  {
+    "objectID": "index.html#download-the-required-data",
+    "href": "index.html#download-the-required-data",
+    "title": "Rubik’s Cube Competition Density and Correlation with 3x3 Speed",
+    "section": "Download the required data",
+    "text": "Download the required data\n\n# loads the tsv from the WCA Results Export\ncompetitions_tsv &lt;- read.delim(\"data/WCA_export_Competitions.tsv\", header = TRUE)\n\n# contains every competitor and their country\npersons_tsv &lt;- read.delim(\"data/WCA_export_Persons.tsv\", header = TRUE)\n\n# contains every competitor's best 3x3x3 average \nranks_tsv &lt;- read.delim(\"data/WCA_export_RanksAverage.tsv\", header = TRUE)"
+  },
+  {
+    "objectID": "index.html#cleaning-the-data",
+    "href": "index.html#cleaning-the-data",
+    "title": "Rubik’s Cube Competition Density and Correlation with 3x3 Speed",
+    "section": "Cleaning the Data",
+    "text": "Cleaning the Data\n\n# cleaning competitions\ncompetitions_tsv &lt;- competitions_tsv %&gt;%\n  select(id, name, countryId, latitude, longitude, cancelled, year) %&gt;%  # selects the columns I want to keep\n  filter(cancelled == 0) %&gt;% #removes cancelled competitions \n  mutate(longitude = as.numeric(longitude), # converts from chr to numeric\n    latitude = as.numeric(latitude)) %&gt;%\n  mutate(latitude = latitude / 1e6, # converts from microdegrees to degrees\n    longitude = longitude / 1e6) %&gt;%\n  mutate(countryId = countrycode(countryId, origin = \"country.name\", destination = \"country.name\")) %&gt;%\n  mutate(iso_a3 = countrycode(countryId, origin = \"country.name\", destination = \"iso3c\")\n  ) # adds iso country code\n\n# creates a dataframe that counts the number of comps per country\ncounts &lt;- competitions_tsv %&gt;%\n  count(countryId, name = \"count\") %&gt;%\n  mutate(iso_a3 = countrycode(countryId, origin = \"country.name\", destination = \"iso3c\")\n  )\n\n# Convert TSV to sf object with projected CRS \ncompetitions_sf &lt;- st_as_sf(competitions_tsv,\n  coords = c(\"longitude\", \"latitude\"), \n  crs = 4326)\n\n#cleaning persons and ranks will be more difficult as their are currently stored in a single column in their TSVs. The plan is to separate by commas."
+  },
+  {
+    "objectID": "index.html#map-of-all-wca-competitions",
+    "href": "index.html#map-of-all-wca-competitions",
+    "title": "Rubik’s Cube Competition Density and Correlation with 3x3 Speed",
+    "section": "Map of all WCA Competitions",
+    "text": "Map of all WCA Competitions\n\n# simple map with all of the competitions plotted individually\nggplot() +\n  borders(\"world\", colour = \"gray70\", fill = \"gray90\") +\n  geom_sf(data = competitions_sf, color = \"red\", size = 3, alpha = 0.05) +\n  theme_minimal() +\n  labs(\n    title = \"World Map of WCA Competitions\",\n    x = \"Longitude\",\n    y = \"Latitude\")\n\nWarning: `borders()` was deprecated in ggplot2 4.0.0.\nℹ Please use `annotation_borders()` instead.\n\n\n\n\n\n\n\n\nworld &lt;- ne_countries(scale = \"medium\", returnclass = \"sf\")\ncount_data &lt;- full_join(world, counts, by = \"iso_a3\")\n\n# choropleth map\nggplot(count_data) +\n  geom_sf(aes(fill = count), color = \"white\") +\n  scale_fill_viridis_c(option = \"plasma\", na.value = \"gray90\") +\n  theme_minimal() +\n  labs(title = \"WCA Competitions per Country\", fill = \"Count\")\n\n\n\n\n\n\n\n#table of countries with the most competitions\ntop_countries &lt;- count_data %&gt;%\n  select(count, countryId) %&gt;% \n  st_drop_geometry() %&gt;%\n  arrange(desc(count)) %&gt;%   # sort from highest to lowest\n  head(10)\n\nkable(top_countries, \n      col.names = c(\"Country\", \"Competition Count\"),\n      caption = \"Top 10 Countries by Number of Competitions\")\n\n\nTop 10 Countries by Number of Competitions\n\n\nCountry\nCompetition Count\n\n\n\n\n2065\nUnited States\n\n\n457\nChina\n\n\n420\nBrazil\n\n\n407\nIndia\n\n\n329\nAustralia\n\n\n290\nColombia\n\n\n280\nCanada\n\n\n261\nSpain\n\n\n250\nPoland\n\n\n243\nPhilippines"
+  },
+  {
+    "objectID": "index.html#kde",
+    "href": "index.html#kde",
+    "title": "Rubik’s Cube Competition Density and Correlation with 3x3 Speed",
+    "section": "KDE",
+    "text": "KDE\n\ncompetitions_sf_utm &lt;- st_as_sf(\n  competitions_tsv,\n  coords = c(\"longitude\", \"latitude\"),  \n  crs = 3857)\n\ncompetitions_kde &lt;- hotspot_kde(competitions_sf_utm)\n\nplot(competitions_kde[\"kde\"])"
   },
   {
     "objectID": "about.html",
