@@ -986,6 +986,18 @@
       ],
       "Hash": "8b3b213aa0c54a0dec254288ccb545d1"
     },
+    "maps": {
+      "Package": "maps",
+      "Version": "3.4.3",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R",
+        "graphics",
+        "utils"
+      ],
+      "Hash": "fd17b77df6edadecf2fe08382c5a2eb1"
+    },
     "memoise": {
       "Package": "memoise",
       "Version": "2.0.1",
