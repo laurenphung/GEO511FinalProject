@@ -6,7 +6,7 @@ date: November 13, 2025
 date-format: long
 ---
 
-# Introduction
+# Introduction 
 
 The Rubik's Cube is a popular 6-sided twisty puzzle first invented in the 1974 by Erno Rubik. Since the late 2000s, the cube's popularity has made a comeback. Many people enjoy the competitive aspect of the cube, aiming to solve it as fast as possible. The current 3x3 single world record is 3.05 seconds by Xuanyi Geng from China. The current 3x3 average world record is 3.90 seconds by Yiheng Wang from China.
 
@@ -15,7 +15,7 @@ Official Rubik's Cube competitions are governed by the World Cube Association (W
 My project aims to determine the relationship between the density of competitions in a given country and the speed of a country's competitors. I have 2 main research questions: How are World Cube Association competitions geographically distributed? Is the density of WCA competitions correlated to the speed of the competitors in the region?
 
 
-# Materials and methods
+# Materials and methods 
 
 My research questions will be answered with the WCA Results Export. This is a massive dataset that is updated every week. It contains data about each competitor, the number of competitions attended, results and rankings, citizenship, gender, records, and world championship podiums. It also includes information about every competition: location, the number of competitors, what events were held, podium finishers.
 
@@ -31,7 +31,7 @@ These 3 variables will be compared to the number of competitions in each country
 
 I also want to explore each competitor's speed in relation to the density of competition. I will calculate the geographic center of competitions for each cuber and determine whether faster 3x3 competitors live in regions with more competitions. 
 
-## Libraries
+## Libraries 
 
 ```{r, message=F, warning=F}
 library(tidyverse)
@@ -53,7 +53,7 @@ knitr::opts_chunk$set(widgetframe_widgets_dir = 'widgets' )
 knitr::opts_chunk$set(cache=TRUE)  # cache the results for quick compiling
 ```
 
-## Download the required data
+## Download the required data 
 
 ```{r}
 # loads the tsv from the WCA Results Export
@@ -66,7 +66,7 @@ persons_tsv <- read.delim("data/WCA_export_Persons.tsv", header = TRUE)
 ranks_tsv <- read.delim("data/WCA_export_RanksAverage.tsv", header = TRUE)
 ```
 
-## Cleaning the Data
+## Cleaning the Data 
 ```{r, warning = F}
 # cleaning competitions
 competitions_tsv <- competitions_tsv %>%
@@ -94,7 +94,7 @@ competitions_sf <- st_as_sf(competitions_tsv,
 #cleaning persons and ranks will be more difficult as their are currently stored in a single column in their TSVs. The plan is to separate by commas.
 ```
 
-## Map of all WCA Competitions
+## Map of all WCA Competitions 
 ```{r}
 # simple map with all of the competitions plotted individually
 ggplot() +
@@ -131,7 +131,7 @@ kable(top_countries,
 ```
 
 
-## KDE
+## KDE 
 ```{r, message = F, warning = F}
 competitions_sf_utm <- st_as_sf(
   competitions_tsv,
@@ -143,7 +143,7 @@ competitions_kde <- hotspot_kde(competitions_sf_utm)
 plot(competitions_kde["kde"])
 ```
 
-# Results
+# Results 
 
 \[\~200 words\]
 
@@ -158,7 +158,7 @@ Show tables, plots, etc. and describe them.
 ```
 
 
-# Conclusions
+# Conclusions 
 
 \[\~200 words\]
 
