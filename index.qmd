@@ -95,7 +95,7 @@ competitions_sf <- st_as_sf(competitions_tsv,
 ```
 
 ## Map of all WCA Competitions
-```{r}
+```{r, warning=F}
 # simple map with all of the competitions plotted individually
 ggplot() +
   borders("world", colour = "gray70", fill = "gray90") +
@@ -141,6 +141,8 @@ competitions_sf_utm <- st_as_sf(
 competitions_kde <- hotspot_kde(competitions_sf_utm)
 
 plot(competitions_kde["kde"])
+
+# Maybe plot over the KDE map with an outline of the countries? 
 ```
 
 # Results
@@ -151,7 +153,7 @@ Tables and figures (maps and other graphics) are carefully planned to convey the
 
 Show tables, plots, etc. and describe them.
 
-
+# I also havent done my results yet, are you going to expand on what youve done to show correlations of speed and location? Does nationality play a part? 
 
 ```{r}
 
