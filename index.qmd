@@ -131,7 +131,7 @@ country_means <- results_top10 %>%
 ```{r}
 # filters for results at World Championship competitions
 podiums <- results_tsv %>%
-  select(pos, best, average, competitionId, eventId, roundTypeId, personName, personId, personCountryId) %>%
+  select(pos, average, competitionId, eventId, roundTypeId, personName, personId, personCountryId) %>%
   filter(competitionId %in% c("WC2007", "WC2009", "WC2011", "WC2013", "WC2015", "WC2017", "WC2019", "WC2023", "WC2025")) %>% #filters only world championships
   filter(eventId == 333) %>% # keeps 3x3 only
   filter(roundTypeId == "f") %>% # final round only
