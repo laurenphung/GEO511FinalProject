@@ -1,9 +1,16 @@
 ---
-title: "Rubik’s Cube Competition Density and Correlation with 3x3 Speed"
+title: "Rubik’s Cube Competition Prevalence and Correlation with 3x3 Speed"
 author: "Lauren Phung"
 subtitle: "Are the fastest speedcubers the ones who have the most competitions near them?"
-date: November 13, 2025
+date: December 4, 2025
 date-format: long
+format:
+  html:
+    code-fold: true
+    code-tools: true
+execute:
+  warning: false
+  message: false
 ---
 
 # Introduction
@@ -12,7 +19,7 @@ The Rubik's Cube is a popular 6-sided twisty puzzle first invented in the 1974 b
 
 Official Rubik's Cube competitions are governed by the World Cube Association (WCA), an entirely volunteer run non-profit organization that was founded in 2004. More than 273,000 people have competed in WCA sanctioned competitions. Competitions are held every week worldwide, but the geographic distribution of competition certainly isn't even. The United States has had over 2,000 cube competitions while other countries have had less than 10 or even none.     
 
-My project aims to determine the relationship between the density of competitions in a given country and the speed of a country's competitors. I have 2 main research questions: How are World Cube Association competitions geographically distributed? Is the density of WCA competitions correlated to the speed of the competitors in the region?
+My project aims to determine the relationship between the density of competitions in a given country and the speed of a country's competitors. I have 2 main research questions: How are World Cube Association competitions geographically distributed on a country level? Is the prevalence of WCA competitions correlated to the speed of the competitors in the region?
 
 
 # Materials and methods
@@ -23,13 +30,12 @@ There are many metrics to determine 3x3 speed. The WCA records the competitors' 
 
 3x3 Speed for each country will be determined with 3 variables:
 
-1.  Mean of the top 25 3x3 averages
+1.  Mean of the top 10 3x3 averages
 2.  Number of 3x3 Podiums at World Championships
 3.  Number of 3x3 average world records
 
-These 3 variables will be compared to the number of competitions in each country. 
+These 3 variables will be compared to the number of competitions in each country with a linear regression model. 
 
-I also want to explore each competitor's speed in relation to the density of competition. I will calculate the geographic center of competitions for each cuber and determine whether faster 3x3 competitors live in regions with more competitions. 
 
 ## Libraries
 
@@ -49,6 +55,9 @@ library(rnaturalearth)
 library(rnaturalearthdata)
 library(leaflet)
 library(countrycode)
+library(plotly)
+library(broom)
+library(knitr)
 knitr::opts_chunk$set(widgetframe_widgets_dir = 'widgets' ) 
 knitr::opts_chunk$set(cache=TRUE)  # cache the results for quick compiling
 ```
@@ -64,11 +73,15 @@ persons_tsv <- read.delim("data/WCA_export_Persons.tsv", header = TRUE)
 
 # contains every competitor's best 3x3x3 average 
 ranks_tsv <- read.delim("data/WCA_export_RanksAverage.tsv", header = TRUE)
+
+# contains all results and world, continental, and national records
+results_tsv <- read.delim("data/WCA_export_Results.tsv", header = TRUE)
 ```
 
-## Cleaning the Data
-```{r, warning = F}
-# cleaning competitions
+
+## Dependent Variable: Competition Count Per Country
+```{r}
+# cleaning competitions_tsv
 competitions_tsv <- competitions_tsv %>%
   select(id, name, countryId, latitude, longitude, cancelled, year) %>%  # selects the columns I want to keep
   filter(cancelled == 0) %>% #removes cancelled competitions 
@@ -77,93 +90,248 @@ competitions_tsv <- competitions_tsv %>%
   mutate(latitude = latitude / 1e6, # converts from microdegrees to degrees
     longitude = longitude / 1e6) %>%
   mutate(countryId = countrycode(countryId, origin = "country.name", destination = "country.name")) %>%
-  mutate(iso_a3 = countrycode(countryId, origin = "country.name", destination = "iso3c")
+  mutate(iso3c = countrycode(countryId, origin = "country.name", destination = "iso3c")
   ) # adds iso country code
 
 # creates a dataframe that counts the number of comps per country
 counts <- competitions_tsv %>%
   count(countryId, name = "count") %>%
-  mutate(iso_a3 = countrycode(countryId, origin = "country.name", destination = "iso3c")
-  )
-
-# Convert TSV to sf object with projected CRS 
-competitions_sf <- st_as_sf(competitions_tsv,
-  coords = c("longitude", "latitude"), 
-  crs = 4326)
-
-#cleaning persons and ranks will be more difficult as their are currently stored in a single column in their TSVs. The plan is to separate by commas.
+  mutate(iso3c = countrycode(countryId, origin = "country.name", destination = "iso3c")) %>%
+  rename(comp_count = count)
 ```
 
-## Map of all WCA Competitions
+## Independent Variable 1: Mean of the top 10 3x3 averages for each country
 ```{r}
-# simple map with all of the competitions plotted individually
-ggplot() +
-  borders("world", colour = "gray70", fill = "gray90") +
-  geom_sf(data = competitions_sf, color = "red", size = 3, alpha = 0.05) +
-  theme_minimal() +
-  labs(
-    title = "World Map of WCA Competitions",
-    x = "Longitude",
-    y = "Latitude")
+# shows only the competitor's fastest average
+results_top10 <- results_tsv %>%
+  select(best, average, eventId, personName, personId, regionalAverageRecord, personCountryId) %>%
+  filter(eventId == 333, average != -1, average != 0) %>% # keeps valid 3x3 results
+  group_by(personName) %>%
+  slice_min(order_by = average, n = 1, with_ties = FALSE) %>%
+  ungroup()
 
+# grabs only the top 10 averages per country 
+results_top10 <- results_top10 %>%
+  group_by(personCountryId) %>%
+  slice_min(order_by = average, n = 10) %>%
+  ungroup()
+
+#calculating mean average for each country
+country_means <- results_top10 %>%
+  group_by(personCountryId) %>%
+  summarize(mean_average = mean(average)) %>%
+  ungroup() %>%
+  mutate(iso3c = countrycode(personCountryId, origin = "country.name", destination = "iso3c")) %>%
+  mutate(mean_average = mean_average / 100)
+
+```
+
+
+## Independent Variable 2: Calculate number of 3x3 podium at World Championships
+```{r}
+# filters for results at World Championship competitions
+podiums <- results_tsv %>%
+  select(pos, best, average, competitionId, eventId, roundTypeId, personName, personId, personCountryId) %>%
+  filter(competitionId %in% c("WC2007", "WC2009", "WC2011", "WC2013", "WC2015", "WC2017", "WC2019", "WC2023", "WC2025")) %>% #filters only world championships
+  filter(eventId == 333) %>% # keeps 3x3 only
+  filter(roundTypeId == "f") %>% # final round only
+  filter(pos <= 3) # top 3 placements are podiums
+
+#counts number of podiums per country
+podiums_per_country <- podiums %>%
+  group_by(personCountryId) %>%
+  summarize(count = n()) %>%
+  ungroup() %>%
+  rename(podium_count = count) %>%
+  mutate(iso3c = countrycode(personCountryId, origin = "country.name", destination = "iso3c"))
+
+```
+
+## Independent Variable 3: Calculating Number of 3x3 average world records
+```{r}
+# filters for 3x3 world records
+WRs <- results_tsv %>%
+  select(eventId, personName, personId, regionalAverageRecord, personCountryId) %>%
+  filter(eventId == 333) %>% # keeps 3x3 results
+  filter(regionalAverageRecord == "WR") # world records only
+
+#counts number of 3x3 average world records per country
+WRs_per_country <- WRs %>%
+  group_by(personCountryId) %>%
+  summarize(count = n()) %>%
+  ungroup() %>%
+  rename(WR_count = count) %>%
+  mutate(iso3c = countrycode(personCountryId, origin = "country.name", destination = "iso3c"))# adds country code
+  
+```
+## Combining all variables
+```{r}
+full_df <- counts %>%
+  left_join(country_means, by = "iso3c") %>%
+  left_join(podiums_per_country,by = "iso3c") %>%
+  left_join(WRs_per_country, by = "iso3c") %>%
+  mutate(across(where(is.numeric), ~replace_na(., 0))) %>%
+  select(countryId, comp_count, mean_average, podium_count, WR_count) %>%
+  mutate(countryId = replace_na(countryId, "Kosovo"))
+  
+```
+
+# Results
+## Competition Count by Country
+```{r}
+# loads world sf geometry - country borders
 world <- ne_countries(scale = "medium", returnclass = "sf")
-count_data <- full_join(world, counts, by = "iso_a3")
 
-# choropleth map
-ggplot(count_data) +
-  geom_sf(aes(fill = count), color = "white") +
-  scale_fill_viridis_c(option = "plasma", na.value = "gray90") +
-  theme_minimal() +
-  labs(title = "WCA Competitions per Country", fill = "Count")
+# corrects the missing iso country codes
+world <- world %>%
+  mutate(iso_a3 = case_when(
+    iso_a3 == "-99" & name == "France" ~ "FRA",
+    iso_a3 == "-99" & name == "Norway" ~ "NOR",
+    iso_a3 == "-99" & name == "Somaliland" ~ "SOM",
+    iso_a3 == "-99" & name == "Kosovo" ~ "XKX",
+    TRUE ~ iso_a3)) %>%
+  rename(iso3c = iso_a3)
+
+world_data <- world %>%
+  full_join(counts, by = "iso3c")
+
+#creates color palette
+pal <- colorNumeric(
+  palette = "YlOrRd",
+  domain = world_data$comp_count,  
+  na.color = "#e0e0e0"
+)
+
+# Create the choropleth map
+leaflet(world_data) %>%
+  addTiles() %>%
+  addPolygons(
+    fillColor = ~pal(comp_count),
+    fillOpacity = 0.7,
+    color = "white",
+    weight = 1,
+    label = ~paste0(name, ": ", comp_count),  
+    highlightOptions = highlightOptions(
+      weight = 2,
+      color = "#666",
+      fillOpacity = 0.9)) %>%
+  addLegend(
+    pal = pal,
+    values = ~comp_count,  
+    opacity = 0.7,
+    title = "Competition Count by Country",  
+    position = "bottomright")
 
 #table of countries with the most competitions
-top_countries <- count_data %>%
-  select(count, countryId) %>% 
-  st_drop_geometry() %>%
-  arrange(desc(count)) %>%   # sort from highest to lowest
+top_countries <- counts %>%
+  select(comp_count, countryId) %>% 
+  arrange(desc(comp_count)) %>%   # sort from highest to lowest
   head(10)
 
 kable(top_countries, 
       col.names = c("Country", "Competition Count"),
       caption = "Top 10 Countries by Number of Competitions")
 
+```
+The United States has the most competitions by a large margin. 
+
+## Heat Map
+```{r, message = F, warning = F, results = "hide"}
+ggplot() +
+  geom_sf(data = world, fill = NA, color = "black", linewidth = 0.3) +
+  geom_density_2d_filled(data = competitions_tsv, aes(x = longitude, y = latitude), alpha = 0.8) +
+  geom_density_2d_filled(alpha = 0.8) +
+  geom_point(size = 0.5, alpha = 0.3, color = "white") +
+  scale_fill_viridis_d(option = "plasma") +
+  theme_minimal() +
+  labs(
+    title = "Density Heatmap",
+    x = "Longitude",
+    y = "Latitude",
+    fill = "Density"
+  ) +
+  coord_sf()
+```
+The heat map reveals that most competitions are clustered in the United States or Central Europe. 
+
+## Linear Regression - Mean of top 10 3x3 averages per country and country count
+```{r}
+#linear regression model
+model1 <- lm(comp_count ~ mean_average, data = full_df)
+summary(model1)
 
 ```
+There is a negative relationship between, the mean of the top 10 3x3 averages and competition count. For every 1 second increase in top 10 3x3 average per country, competition count decreases by 6.22. The regression result is significant at the 0.05 level. However, the R-squared of the model is very low, which means that it does not do a good job of explaining the variation. 
+```{r}
+# scatter plot
+plot1 <- ggplot(full_df, aes(x = mean_average, y = comp_count)) +
+  geom_smooth(method = "lm", se = FALSE, color = "blue", formula = y ~ x) +
+  geom_point(aes(text = paste("Country:", countryId, 
+                              "<br>X:", round(mean_average, 2), 
+                              "<br>Y:", comp_count)), 
+             alpha = 0.6) +
+  scale_x_log10() +
+  scale_y_log10() +
+  labs(title = "Competition Count vs 3x3 Speed (log scale)",
+    x = "Mean 3x3 speed (seconds)",
+    y = "Competition Count") +
+  theme_minimal()
 
+# adds interactive component
+ggplotly(plot1, tooltip = "text")
 
-## KDE
-```{r, message = F, warning = F}
-competitions_sf_utm <- st_as_sf(
-  competitions_tsv,
-  coords = c("longitude", "latitude"),  
-  crs = 3857)
-
-competitions_kde <- hotspot_kde(competitions_sf_utm)
-
-plot(competitions_kde["kde"])
 ```
+Scatter Plot using log scale: It is easy to see the negative relationship between the two variables here. 
 
-# Results
-
-\[\~200 words\]
-
-Tables and figures (maps and other graphics) are carefully planned to convey the results of your analysis. Intense exploration and evidence of many trials and failures. The author looked at the data in many different ways before coming to the final presentation of the data.
-
-Show tables, plots, etc. and describe them.
-
-
-
+## Linear Regression - podiums per country and country count
 ```{r}
 
+top_podium_countries <- full_df %>%
+  select(podium_count, countryId) %>% 
+  arrange(desc(podium_count)) %>%   # sort from highest to lowest
+  head(10)
+
+kable(top_podium_countries, 
+      col.names = c("Podium Count", "Country"),
+      caption = "Top 10 Countries by World Championship Podium Count")
+
+model2 <- lm(comp_count ~ podium_count, data = full_df)
+summary(model2)
+
+```
+World championship podiums are positively correlated with competition count. With each additional world championship podium, the competition count increases by 149 competitions. This result is significant at below the 0.001 level. This model has better fit than the between the mean of top 10 3x3 averages and competition count. 
+
+## Linear Regression - 3x3 average world records per country and country count
+```{r}
+top_wr_countries <- full_df %>%
+  select(WR_count, countryId) %>% 
+  arrange(desc(WR_count)) %>%   # sort from highest to lowest
+  head(9)
+
+kable(top_wr_countries, 
+      col.names = c("World Record Count", "Country"),
+      caption = "Top 9 Countries by World Record Count")
+
+model3 <- lm(comp_count ~ WR_count, data = full_df)
+summary(model3)
+
 ```
 
+3x3 World records are positively correlated with competition count. With each additional world record, the competition count increases by 51 competitions. This result is significant at below the 0.001 level. 
 
 # Conclusions
 
-\[\~200 words\]
+Overall, 3x3 speed is correlated with competition count. Countries with faster top 10 mean 3x3 averages have more competitions. Countries that have achieved more world championship podiums have more competitions. Countries that have achieved more world records have more competitions. 
 
-Clear summary adequately describing the results and putting them in context. Discussion of further questions and ways to continue investigation.
+The United States has by far the most competitions. The results of my linear regression models make a lot of sense as the World Cube Association was founded in the United States. Competitions are entirely volunteer run, so the United States was the first country to have organizers and WCA Delegates that hosted competitions. Organizers and Delegates need a lot of experience to run competitions, and the United States has that advantage over other countries. This also allowed the United States to develop a cubing culture early on, as cubing spreads locally through cube clubs and seeing other people solving cubes. 
+
+This allowed the United States to grow cubing earlier and faster than other countries. With a larger amount of competitors, a subset (10 people) of that larger amount is going to be faster at solving 3x3s than a country with a smaller number of competitors.
+
+World championship podiums can only be achieved every 2 years. The world championship competition is hosted by a country that bids (similar to the Olympics). Traveling to a multi-date world championship is often time consuming and expensive, which makes it inaccessible to some competitors even if they are talented enough to achieve a podium. This is why the top countries that have achieved world championship podiums are all relatively developed countries. 
+
+World records can be broken at any competition, but having more competitions nearby may motivate competitors to practice more. Having more competitions nearby also gives competitors a greater number of chances to break the world record. The top country for 3x3 world records is Australia because of the dominance of Feliks Zemdegs, who held the 3x3 world record and broke it 13 times from 2010 - 2019. 
+
 
 # References
 
-All sources are cited in a consistent manner
+WCA Results Export - https://www.worldcubeassociation.org/export/results

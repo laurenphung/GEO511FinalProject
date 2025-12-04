@@ -4,7 +4,7 @@ body {
   background-attachment: fixed;
   background-position: center;
   background-repeat: no-repeat;
-  color: white;
+  color: black;
   font-family: "Poppins", sans-serif;
 }
 
@@ -17,7 +17,7 @@ body::before {
 }
 
 main.content {
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(255, 255, 255, 0.95);
   padding: 30px;
   border-radius: 15px;
 }
