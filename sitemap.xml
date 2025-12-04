@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://laurenphung.github.io/GEO511FinalProject/data/Readme.html</loc>
-    <lastmod>2025-12-04T16:05:49.596Z</lastmod>
-  </url>
-  <url>
     <loc>https://laurenphung.github.io/GEO511FinalProject/index.html</loc>
-    <lastmod>2025-12-04T16:05:49.851Z</lastmod>
+    <lastmod>2025-12-04T16:32:04.012Z</lastmod>
   </url>
   <url>
     <loc>https://laurenphung.github.io/GEO511FinalProject/about.html</loc>
-    <lastmod>2025-12-04T16:05:49.596Z</lastmod>
+    <lastmod>2025-11-11T20:25:36.045Z</lastmod>
+  </url>
+  <url>
+    <loc>https://laurenphung.github.io/GEO511FinalProject/data/Readme.html</loc>
+    <lastmod>2025-11-11T20:25:36.045Z</lastmod>
   </url>
 </urlset>

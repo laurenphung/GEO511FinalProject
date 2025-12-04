@@ -1,52 +1,94 @@
 [
   {
-    "objectID": "data/Readme.html",
-    "href": "data/Readme.html",
-    "title": "Data Folder",
-    "section": "",
-    "text": "Data Folder\nPlace any data needed by your analysis in this folder. Please do not store large files here. Then read in any data using the ‘data’ path. For example, read_csv(\"data/data.csv\")."
-  },
-  {
     "objectID": "index.html",
     "href": "index.html",
-    "title": "Rubik’s Cube Competition Density and Correlation with 3x3 Speed",
+    "title": "Rubik’s Cube Competition Prevalence and Correlation with 3x3 Speed",
     "section": "",
-    "text": "The Rubik’s Cube is a popular 6-sided twisty puzzle first invented in the 1974 by Erno Rubik. Since the late 2000s, the cube’s popularity has made a comeback. Many people enjoy the competitive aspect of the cube, aiming to solve it as fast as possible. The current 3x3 single world record is 3.05 seconds by Xuanyi Geng from China. The current 3x3 average world record is 3.90 seconds by Yiheng Wang from China.\nOfficial Rubik’s Cube competitions are governed by the World Cube Association (WCA), an entirely volunteer run non-profit organization that was founded in 2004. More than 273,000 people have competed in WCA sanctioned competitions. Competitions are held every week worldwide, but the geographic distribution of competition certainly isn’t even. The United States has had over 2,000 cube competitions while other countries have had less than 10 or even none.\nMy project aims to determine the relationship between the density of competitions in a given country and the speed of a country’s competitors. I have 2 main research questions: How are World Cube Association competitions geographically distributed? Is the density of WCA competitions correlated to the speed of the competitors in the region?"
+    "text": "The Rubik’s Cube is a popular 6-sided twisty puzzle first invented in the 1974 by Erno Rubik. Since the late 2000s, the cube’s popularity has made a comeback. Many people enjoy the competitive aspect of the cube, aiming to solve it as fast as possible. The current 3x3 single world record is 3.05 seconds by Xuanyi Geng from China. The current 3x3 average world record is 3.90 seconds by Yiheng Wang from China.\nOfficial Rubik’s Cube competitions are governed by the World Cube Association (WCA), an entirely volunteer run non-profit organization that was founded in 2004. More than 273,000 people have competed in WCA sanctioned competitions. Competitions are held every week worldwide, but the geographic distribution of competition certainly isn’t even. The United States has had over 2,000 cube competitions while other countries have had less than 10 or even none.\nMy project aims to determine the relationship between the density of competitions in a given country and the speed of a country’s competitors. I have 2 main research questions: How are World Cube Association competitions geographically distributed on a country level? Is the prevalence of WCA competitions correlated to the speed of the competitors in the region?"
   },
   {
     "objectID": "index.html#libraries",
     "href": "index.html#libraries",
-    "title": "Rubik’s Cube Competition Density and Correlation with 3x3 Speed",
+    "title": "Rubik’s Cube Competition Prevalence and Correlation with 3x3 Speed",
     "section": "Libraries",
-    "text": "Libraries\n\nlibrary(tidyverse)\nlibrary(leaflet)\nlibrary(knitr)\nlibrary(kableExtra)\nlibrary(htmlwidgets)\nlibrary(widgetframe)\nlibrary(sf)\nlibrary(maps)\nlibrary(sfhotspot)\nlibrary(dplyr)\nlibrary(ggplot2)\nlibrary(rnaturalearth)\nlibrary(rnaturalearthdata)\nlibrary(leaflet)\nlibrary(countrycode)\nknitr::opts_chunk$set(widgetframe_widgets_dir = 'widgets' ) \nknitr::opts_chunk$set(cache=TRUE)  # cache the results for quick compiling"
+    "text": "Libraries\n\n\nCode\nlibrary(tidyverse)\nlibrary(leaflet)\nlibrary(knitr)\nlibrary(kableExtra)\nlibrary(htmlwidgets)\nlibrary(widgetframe)\nlibrary(sf)\nlibrary(maps)\nlibrary(sfhotspot)\nlibrary(dplyr)\nlibrary(ggplot2)\nlibrary(rnaturalearth)\nlibrary(rnaturalearthdata)\nlibrary(leaflet)\nlibrary(countrycode)\nlibrary(plotly)\nlibrary(broom)\nlibrary(knitr)\nknitr::opts_chunk$set(widgetframe_widgets_dir = 'widgets' ) \nknitr::opts_chunk$set(cache=TRUE)  # cache the results for quick compiling"
   },
   {
     "objectID": "index.html#download-the-required-data",
     "href": "index.html#download-the-required-data",
-    "title": "Rubik’s Cube Competition Density and Correlation with 3x3 Speed",
+    "title": "Rubik’s Cube Competition Prevalence and Correlation with 3x3 Speed",
     "section": "Download the required data",
-    "text": "Download the required data\n\n# loads the tsv from the WCA Results Export\ncompetitions_tsv &lt;- read.delim(\"data/WCA_export_Competitions.tsv\", header = TRUE)\n\n# contains every competitor and their country\npersons_tsv &lt;- read.delim(\"data/WCA_export_Persons.tsv\", header = TRUE)\n\n# contains every competitor's best 3x3x3 average \nranks_tsv &lt;- read.delim(\"data/WCA_export_RanksAverage.tsv\", header = TRUE)"
+    "text": "Download the required data\n\n\nCode\n# loads the tsv from the WCA Results Export\ncompetitions_tsv &lt;- read.delim(\"data/WCA_export_Competitions.tsv\", header = TRUE)\n\n# contains every competitor and their country\npersons_tsv &lt;- read.delim(\"data/WCA_export_Persons.tsv\", header = TRUE)\n\n# contains every competitor's best 3x3x3 average \nranks_tsv &lt;- read.delim(\"data/WCA_export_RanksAverage.tsv\", header = TRUE)\n\n# contains all results and world, continental, and national records\nresults_tsv &lt;- read.delim(\"data/WCA_export_Results.tsv\", header = TRUE)"
   },
   {
-    "objectID": "index.html#cleaning-the-data",
-    "href": "index.html#cleaning-the-data",
-    "title": "Rubik’s Cube Competition Density and Correlation with 3x3 Speed",
-    "section": "Cleaning the Data",
-    "text": "Cleaning the Data\n\n# cleaning competitions\ncompetitions_tsv &lt;- competitions_tsv %&gt;%\n  select(id, name, countryId, latitude, longitude, cancelled, year) %&gt;%  # selects the columns I want to keep\n  filter(cancelled == 0) %&gt;% #removes cancelled competitions \n  mutate(longitude = as.numeric(longitude), # converts from chr to numeric\n    latitude = as.numeric(latitude)) %&gt;%\n  mutate(latitude = latitude / 1e6, # converts from microdegrees to degrees\n    longitude = longitude / 1e6) %&gt;%\n  mutate(countryId = countrycode(countryId, origin = \"country.name\", destination = \"country.name\")) %&gt;%\n  mutate(iso_a3 = countrycode(countryId, origin = \"country.name\", destination = \"iso3c\")\n  ) # adds iso country code\n\n# creates a dataframe that counts the number of comps per country\ncounts &lt;- competitions_tsv %&gt;%\n  count(countryId, name = \"count\") %&gt;%\n  mutate(iso_a3 = countrycode(countryId, origin = \"country.name\", destination = \"iso3c\")\n  )\n\n# Convert TSV to sf object with projected CRS \ncompetitions_sf &lt;- st_as_sf(competitions_tsv,\n  coords = c(\"longitude\", \"latitude\"), \n  crs = 4326)\n\n#cleaning persons and ranks will be more difficult as their are currently stored in a single column in their TSVs. The plan is to separate by commas."
+    "objectID": "index.html#dependent-variable-competition-count-per-country",
+    "href": "index.html#dependent-variable-competition-count-per-country",
+    "title": "Rubik’s Cube Competition Prevalence and Correlation with 3x3 Speed",
+    "section": "Dependent Variable: Competition Count Per Country",
+    "text": "Dependent Variable: Competition Count Per Country\n\n\nCode\n# cleaning competitions_tsv\ncompetitions_tsv &lt;- competitions_tsv %&gt;%\n  select(id, name, countryId, latitude, longitude, cancelled, year) %&gt;%  # selects the columns I want to keep\n  filter(cancelled == 0) %&gt;% #removes cancelled competitions \n  mutate(longitude = as.numeric(longitude), # converts from chr to numeric\n    latitude = as.numeric(latitude)) %&gt;%\n  mutate(latitude = latitude / 1e6, # converts from microdegrees to degrees\n    longitude = longitude / 1e6) %&gt;%\n  mutate(countryId = countrycode(countryId, origin = \"country.name\", destination = \"country.name\")) %&gt;%\n  mutate(iso3c = countrycode(countryId, origin = \"country.name\", destination = \"iso3c\")\n  ) # adds iso country code\n\n# creates a dataframe that counts the number of comps per country\ncounts &lt;- competitions_tsv %&gt;%\n  count(countryId, name = \"count\") %&gt;%\n  mutate(iso3c = countrycode(countryId, origin = \"country.name\", destination = \"iso3c\")) %&gt;%\n  rename(comp_count = count)"
   },
   {
-    "objectID": "index.html#map-of-all-wca-competitions",
-    "href": "index.html#map-of-all-wca-competitions",
-    "title": "Rubik’s Cube Competition Density and Correlation with 3x3 Speed",
-    "section": "Map of all WCA Competitions",
-    "text": "Map of all WCA Competitions\n\n# simple map with all of the competitions plotted individually\nggplot() +\n  borders(\"world\", colour = \"gray70\", fill = \"gray90\") +\n  geom_sf(data = competitions_sf, color = \"red\", size = 3, alpha = 0.05) +\n  theme_minimal() +\n  labs(\n    title = \"World Map of WCA Competitions\",\n    x = \"Longitude\",\n    y = \"Latitude\")\n\nWarning: `borders()` was deprecated in ggplot2 4.0.0.\nℹ Please use `annotation_borders()` instead.\n\n\n\n\n\n\n\n\nworld &lt;- ne_countries(scale = \"medium\", returnclass = \"sf\")\ncount_data &lt;- full_join(world, counts, by = \"iso_a3\")\n\n# choropleth map\nggplot(count_data) +\n  geom_sf(aes(fill = count), color = \"white\") +\n  scale_fill_viridis_c(option = \"plasma\", na.value = \"gray90\") +\n  theme_minimal() +\n  labs(title = \"WCA Competitions per Country\", fill = \"Count\")\n\n\n\n\n\n\n\n#table of countries with the most competitions\ntop_countries &lt;- count_data %&gt;%\n  select(count, countryId) %&gt;% \n  st_drop_geometry() %&gt;%\n  arrange(desc(count)) %&gt;%   # sort from highest to lowest\n  head(10)\n\nkable(top_countries, \n      col.names = c(\"Country\", \"Competition Count\"),\n      caption = \"Top 10 Countries by Number of Competitions\")\n\n\nTop 10 Countries by Number of Competitions\n\n\nCountry\nCompetition Count\n\n\n\n\n2065\nUnited States\n\n\n457\nChina\n\n\n420\nBrazil\n\n\n407\nIndia\n\n\n329\nAustralia\n\n\n290\nColombia\n\n\n280\nCanada\n\n\n261\nSpain\n\n\n250\nPoland\n\n\n243\nPhilippines"
+    "objectID": "index.html#independent-variable-1-mean-of-the-top-10-3x3-averages-for-each-country",
+    "href": "index.html#independent-variable-1-mean-of-the-top-10-3x3-averages-for-each-country",
+    "title": "Rubik’s Cube Competition Prevalence and Correlation with 3x3 Speed",
+    "section": "Independent Variable 1: Mean of the top 10 3x3 averages for each country",
+    "text": "Independent Variable 1: Mean of the top 10 3x3 averages for each country\n\n\nCode\n# shows only the competitor's fastest average\nresults_top10 &lt;- results_tsv %&gt;%\n  select(average, eventId, personName, personId, regionalAverageRecord, personCountryId) %&gt;%\n  filter(eventId == 333, average != -1, average != 0) %&gt;% # keeps valid 3x3 results\n  group_by(personName) %&gt;%\n  slice_min(order_by = average, n = 1, with_ties = FALSE) %&gt;%\n  ungroup()\n\n# grabs only the top 10 averages per country \nresults_top10 &lt;- results_top10 %&gt;%\n  group_by(personCountryId) %&gt;%\n  slice_min(order_by = average, n = 10) %&gt;%\n  ungroup()\n\n#calculating mean average for each country\ncountry_means &lt;- results_top10 %&gt;%\n  group_by(personCountryId) %&gt;%\n  summarize(mean_average = mean(average)) %&gt;%\n  ungroup() %&gt;%\n  mutate(iso3c = countrycode(personCountryId, origin = \"country.name\", destination = \"iso3c\")) %&gt;%\n  mutate(mean_average = mean_average / 100)"
   },
   {
-    "objectID": "index.html#kde",
-    "href": "index.html#kde",
-    "title": "Rubik’s Cube Competition Density and Correlation with 3x3 Speed",
-    "section": "KDE",
-    "text": "KDE\n\ncompetitions_sf_utm &lt;- st_as_sf(\n  competitions_tsv,\n  coords = c(\"longitude\", \"latitude\"),  \n  crs = 3857)\n\ncompetitions_kde &lt;- hotspot_kde(competitions_sf_utm)\n\nplot(competitions_kde[\"kde\"])"
+    "objectID": "index.html#independent-variable-2-calculate-number-of-3x3-podium-at-world-championships",
+    "href": "index.html#independent-variable-2-calculate-number-of-3x3-podium-at-world-championships",
+    "title": "Rubik’s Cube Competition Prevalence and Correlation with 3x3 Speed",
+    "section": "Independent Variable 2: Calculate number of 3x3 podium at World Championships",
+    "text": "Independent Variable 2: Calculate number of 3x3 podium at World Championships\n\n\nCode\n# filters for results at World Championship competitions\npodiums &lt;- results_tsv %&gt;%\n  select(pos, average, competitionId, eventId, roundTypeId, personName, personId, personCountryId) %&gt;%\n  filter(competitionId %in% c(\"WC2007\", \"WC2009\", \"WC2011\", \"WC2013\", \"WC2015\", \"WC2017\", \"WC2019\", \"WC2023\", \"WC2025\")) %&gt;% #filters only world championships\n  filter(eventId == 333) %&gt;% # keeps 3x3 only\n  filter(roundTypeId == \"f\") %&gt;% # final round only\n  filter(pos &lt;= 3) # top 3 placements are podiums\n\n#counts number of podiums per country\npodiums_per_country &lt;- podiums %&gt;%\n  group_by(personCountryId) %&gt;%\n  summarize(count = n()) %&gt;%\n  ungroup() %&gt;%\n  rename(podium_count = count) %&gt;%\n  mutate(iso3c = countrycode(personCountryId, origin = \"country.name\", destination = \"iso3c\"))"
+  },
+  {
+    "objectID": "index.html#independent-variable-3-calculating-number-of-3x3-average-world-records",
+    "href": "index.html#independent-variable-3-calculating-number-of-3x3-average-world-records",
+    "title": "Rubik’s Cube Competition Prevalence and Correlation with 3x3 Speed",
+    "section": "Independent Variable 3: Calculating Number of 3x3 average world records",
+    "text": "Independent Variable 3: Calculating Number of 3x3 average world records\n\n\nCode\n# filters for 3x3 world records\nWRs &lt;- results_tsv %&gt;%\n  select(eventId, personName, personId, regionalAverageRecord, personCountryId) %&gt;%\n  filter(eventId == 333) %&gt;% # keeps 3x3 results\n  filter(regionalAverageRecord == \"WR\") # world records only\n\n#counts number of 3x3 average world records per country\nWRs_per_country &lt;- WRs %&gt;%\n  group_by(personCountryId) %&gt;%\n  summarize(count = n()) %&gt;%\n  ungroup() %&gt;%\n  rename(WR_count = count) %&gt;%\n  mutate(iso3c = countrycode(personCountryId, origin = \"country.name\", destination = \"iso3c\"))# adds country code"
+  },
+  {
+    "objectID": "index.html#combining-all-variables",
+    "href": "index.html#combining-all-variables",
+    "title": "Rubik’s Cube Competition Prevalence and Correlation with 3x3 Speed",
+    "section": "Combining all variables",
+    "text": "Combining all variables\n\n\nCode\nfull_df &lt;- counts %&gt;%\n  left_join(country_means, by = \"iso3c\") %&gt;%\n  left_join(podiums_per_country,by = \"iso3c\") %&gt;%\n  left_join(WRs_per_country, by = \"iso3c\") %&gt;%\n  mutate(across(where(is.numeric), ~replace_na(., 0))) %&gt;%\n  select(countryId, comp_count, mean_average, podium_count, WR_count) %&gt;%\n  mutate(countryId = replace_na(countryId, \"Kosovo\"))"
+  },
+  {
+    "objectID": "index.html#competition-count-by-country",
+    "href": "index.html#competition-count-by-country",
+    "title": "Rubik’s Cube Competition Prevalence and Correlation with 3x3 Speed",
+    "section": "Competition Count by Country",
+    "text": "Competition Count by Country\n\n\nCode\n# loads world sf geometry - country borders\nworld &lt;- ne_countries(scale = \"medium\", returnclass = \"sf\")\n\n# corrects the missing iso country codes\nworld &lt;- world %&gt;%\n  mutate(iso_a3 = case_when(\n    iso_a3 == \"-99\" & name == \"France\" ~ \"FRA\",\n    iso_a3 == \"-99\" & name == \"Norway\" ~ \"NOR\",\n    iso_a3 == \"-99\" & name == \"Somaliland\" ~ \"SOM\",\n    iso_a3 == \"-99\" & name == \"Kosovo\" ~ \"XKX\",\n    TRUE ~ iso_a3)) %&gt;%\n  rename(iso3c = iso_a3)\n\nworld_data &lt;- world %&gt;%\n  full_join(counts, by = \"iso3c\")\n\n#creates color palette\npal &lt;- colorNumeric(\n  palette = \"YlOrRd\",\n  domain = world_data$comp_count,  \n  na.color = \"#e0e0e0\"\n)\n\n# Create the choropleth map\nleaflet(world_data) %&gt;%\n  addTiles() %&gt;%\n  addPolygons(\n    fillColor = ~pal(comp_count),\n    fillOpacity = 0.7,\n    color = \"white\",\n    weight = 1,\n    label = ~paste0(name, \": \", comp_count),  \n    highlightOptions = highlightOptions(\n      weight = 2,\n      color = \"#666\",\n      fillOpacity = 0.9)) %&gt;%\n  addLegend(\n    pal = pal,\n    values = ~comp_count,  \n    opacity = 0.7,\n    title = \"Competition Count by Country\",  \n    position = \"bottomright\")\n\n\n\n\n\n\nCode\n#table of countries with the most competitions\ntop_countries &lt;- counts %&gt;%\n  select(comp_count, countryId) %&gt;% \n  arrange(desc(comp_count)) %&gt;%   # sort from highest to lowest\n  head(10)\n\nkable(top_countries, \n      col.names = c(\"Country\", \"Competition Count\"),\n      caption = \"Top 10 Countries by Number of Competitions\")\n\n\n\nTop 10 Countries by Number of Competitions\n\n\nCountry\nCompetition Count\n\n\n\n\n2065\nUnited States\n\n\n457\nChina\n\n\n420\nBrazil\n\n\n407\nIndia\n\n\n329\nAustralia\n\n\n290\nColombia\n\n\n280\nCanada\n\n\n261\nSpain\n\n\n250\nPoland\n\n\n243\nPhilippines\n\n\n\n\n\nThe United States has the most competitions by a large margin."
+  },
+  {
+    "objectID": "index.html#heat-map",
+    "href": "index.html#heat-map",
+    "title": "Rubik’s Cube Competition Prevalence and Correlation with 3x3 Speed",
+    "section": "Heat Map",
+    "text": "Heat Map\n\n\nCode\nggplot() +\n  geom_sf(data = world, fill = NA, color = \"black\", linewidth = 0.3) +\n  geom_density_2d_filled(data = competitions_tsv, aes(x = longitude, y = latitude), alpha = 0.8) +\n  geom_density_2d_filled(alpha = 0.8) +\n  geom_point(size = 0.5, alpha = 0.3, color = \"white\") +\n  scale_fill_viridis_d(option = \"plasma\") +\n  theme_minimal() +\n  labs(\n    title = \"Density Heatmap\",\n    x = \"Longitude\",\n    y = \"Latitude\",\n    fill = \"Density\"\n  ) +\n  coord_sf()\n\n\n\n\n\n\n\n\n\nThe heat map reveals that most competitions are clustered in the United States or Central Europe."
+  },
+  {
+    "objectID": "index.html#linear-regression---mean-of-top-10-3x3-averages-per-country-and-country-count",
+    "href": "index.html#linear-regression---mean-of-top-10-3x3-averages-per-country-and-country-count",
+    "title": "Rubik’s Cube Competition Prevalence and Correlation with 3x3 Speed",
+    "section": "Linear Regression - Mean of top 10 3x3 averages per country and country count",
+    "text": "Linear Regression - Mean of top 10 3x3 averages per country and country count\n\n\nCode\n#linear regression model\nmodel1 &lt;- lm(comp_count ~ mean_average, data = full_df)\nsummary(model1)\n\n\n\nCall:\nlm(formula = comp_count ~ mean_average, data = full_df)\n\nResiduals:\n    Min      1Q  Median      3Q     Max \n -91.18  -72.25  -52.71    5.53 1948.99 \n\nCoefficients:\n             Estimate Std. Error t value Pr(&gt;|t|)    \n(Intercept)   148.364     34.673   4.279 4.02e-05 ***\nmean_average   -6.222      2.682  -2.320   0.0222 *  \n---\nSignif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1\n\nResidual standard error: 207 on 110 degrees of freedom\nMultiple R-squared:  0.04664,   Adjusted R-squared:  0.03798 \nF-statistic: 5.382 on 1 and 110 DF,  p-value: 0.02219\n\n\nThere is a negative relationship between, the mean of the top 10 3x3 averages and competition count. For every 1 second increase in top 10 3x3 average per country, competition count decreases by 6.22. The regression result is significant at the 0.05 level. However, the R-squared of the model is very low, which means that it does not do a good job of explaining the variation.\n\n\nCode\n# scatter plot\nplot1 &lt;- ggplot(full_df, aes(x = mean_average, y = comp_count)) +\n  geom_smooth(method = \"lm\", se = FALSE, color = \"blue\", formula = y ~ x) +\n  geom_point(aes(text = paste(\"Country:\", countryId, \n                              \"&lt;br&gt;X:\", round(mean_average, 2), \n                              \"&lt;br&gt;Y:\", comp_count)), \n             alpha = 0.6) +\n  scale_x_log10() +\n  scale_y_log10() +\n  labs(title = \"Competition Count vs 3x3 Speed (log scale)\",\n    x = \"Mean 3x3 speed (seconds)\",\n    y = \"Competition Count\") +\n  theme_minimal()\n\n# adds interactive component\nggplotly(plot1, tooltip = \"text\")\n\n\n\n\n\n\nScatter Plot using log scale: It is easy to see the negative relationship between the two variables here."
+  },
+  {
+    "objectID": "index.html#linear-regression---podiums-per-country-and-country-count",
+    "href": "index.html#linear-regression---podiums-per-country-and-country-count",
+    "title": "Rubik’s Cube Competition Prevalence and Correlation with 3x3 Speed",
+    "section": "Linear Regression - podiums per country and country count",
+    "text": "Linear Regression - podiums per country and country count\n\n\nCode\ntop_podium_countries &lt;- full_df %&gt;%\n  select(podium_count, countryId) %&gt;% \n  arrange(desc(podium_count)) %&gt;%   # sort from highest to lowest\n  head(10)\n\nkable(top_podium_countries, \n      col.names = c(\"Podium Count\", \"Country\"),\n      caption = \"Top 10 Countries by World Championship Podium Count\")\n\n\n\nTop 10 Countries by World Championship Podium Count\n\n\nPodium Count\nCountry\n\n\n\n\n5\nPoland\n\n\n5\nUnited States\n\n\n3\nAustralia\n\n\n3\nChina\n\n\n3\nGermany\n\n\n3\nNetherlands\n\n\n2\nJapan\n\n\n1\nPhilippines\n\n\n1\nSouth Korea\n\n\n1\nUnited Kingdom\n\n\n\n\n\nCode\nmodel2 &lt;- lm(comp_count ~ podium_count, data = full_df)\nsummary(model2)\n\n\n\nCall:\nlm(formula = comp_count ~ podium_count, data = full_df)\n\nResiduals:\n    Min      1Q  Median      3Q     Max \n-541.32  -42.01  -27.51   16.49 1273.68 \n\nCoefficients:\n             Estimate Std. Error t value Pr(&gt;|t|)    \n(Intercept)     46.01      16.24   2.833  0.00548 ** \npodium_count   149.06      17.82   8.365 2.09e-13 ***\n---\nSignif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1\n\nResidual standard error: 165.7 on 110 degrees of freedom\nMultiple R-squared:  0.3888,    Adjusted R-squared:  0.3832 \nF-statistic: 69.97 on 1 and 110 DF,  p-value: 2.092e-13\n\n\nWorld championship podiums are positively correlated with competition count. With each additional world championship podium, the competition count increases by 149 competitions. This result is significant at below the 0.001 level. This model has better fit than the between the mean of top 10 3x3 averages and competition count."
+  },
+  {
+    "objectID": "index.html#linear-regression---3x3-average-world-records-per-country-and-country-count",
+    "href": "index.html#linear-regression---3x3-average-world-records-per-country-and-country-count",
+    "title": "Rubik’s Cube Competition Prevalence and Correlation with 3x3 Speed",
+    "section": "Linear Regression - 3x3 average world records per country and country count",
+    "text": "Linear Regression - 3x3 average world records per country and country count\n\n\nCode\ntop_wr_countries &lt;- full_df %&gt;%\n  select(WR_count, countryId) %&gt;% \n  arrange(desc(WR_count)) %&gt;%   # sort from highest to lowest\n  head(9)\n\nkable(top_wr_countries, \n      col.names = c(\"World Record Count\", \"Country\"),\n      caption = \"Top 9 Countries by World Record Count\")\n\n\n\nTop 9 Countries by World Record Count\n\n\nWorld Record Count\nCountry\n\n\n\n\n13\nAustralia\n\n\n11\nChina\n\n\n6\nJapan\n\n\n5\nUnited States\n\n\n4\nPoland\n\n\n2\nFinland\n\n\n1\nFrance\n\n\n1\nNetherlands\n\n\n1\nSouth Korea\n\n\n\n\n\nCode\nmodel3 &lt;- lm(comp_count ~ WR_count, data = full_df)\nsummary(model3)\n\n\n\nCall:\nlm(formula = comp_count ~ WR_count, data = full_df)\n\nResiduals:\n    Min      1Q  Median      3Q     Max \n-391.38  -57.30  -40.55    2.45 1749.74 \n\nCoefficients:\n            Estimate Std. Error t value Pr(&gt;|t|)    \n(Intercept)    62.05      18.52   3.351   0.0011 ** \nWR_count       50.64      10.13   4.998  2.2e-06 ***\n---\nSignif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1\n\nResidual standard error: 191.4 on 110 degrees of freedom\nMultiple R-squared:  0.1851,    Adjusted R-squared:  0.1777 \nF-statistic: 24.98 on 1 and 110 DF,  p-value: 2.201e-06\n\n\n3x3 World records are positively correlated with competition count. With each additional world record, the competition count increases by 51 competitions. This result is significant at below the 0.001 level."
   },
   {
     "objectID": "about.html",
@@ -54,5 +96,12 @@
     "title": "About",
     "section": "",
     "text": "About this site\n\n1 + 1\n\n[1] 2"
+  },
+  {
+    "objectID": "data/Readme.html",
+    "href": "data/Readme.html",
+    "title": "Data Folder",
+    "section": "",
+    "text": "Data Folder\nPlace any data needed by your analysis in this folder. Please do not store large files here. Then read in any data using the ‘data’ path. For example, read_csv(\"data/data.csv\")."
   }
 ]
