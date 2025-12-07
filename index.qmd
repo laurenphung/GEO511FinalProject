@@ -4,6 +4,7 @@ author: "Lauren Phung"
 subtitle: "Are the fastest speedcubers the ones who have the most competitions near them?"
 date: December 4, 2025
 date-format: long
+toc: true
 format:
   html:
     code-fold: true
@@ -63,23 +64,18 @@ knitr::opts_chunk$set(cache=TRUE)  # cache the results for quick compiling
 ```
 
 ## Download the required data
-
+Two TSVs are downloaded from the WCA Results Export. Competitions includes data on every competition. Results contains all results from all competitions.  
 ```{r}
 # loads the tsv from the WCA Results Export
 competitions_tsv <- read.delim("data/WCA_export_Competitions.tsv", header = TRUE)
 
-# contains every competitor and their country
-persons_tsv <- read.delim("data/WCA_export_Persons.tsv", header = TRUE)
-
-# contains every competitor's best 3x3x3 average 
-ranks_tsv <- read.delim("data/WCA_export_RanksAverage.tsv", header = TRUE)
-
-# contains all results and world, continental, and national records
+# contains all results from all competitions
 results_tsv <- read.delim("data/WCA_export_Results.tsv", header = TRUE)
 ```
 
 
 ## Dependent Variable: Competition Count Per Country
+Competitions count per country is calculated off of the competitions_tsv and using the function 'count'. 
 ```{r}
 # cleaning competitions_tsv
 competitions_tsv <- competitions_tsv %>%
@@ -101,6 +97,7 @@ counts <- competitions_tsv %>%
 ```
 
 ## Independent Variable 1: Mean of the top 10 3x3 averages for each country
+Since the results_TSV contains every single average done from every single competition, I had to filter this dataset to only the averages from the top 10 fastest people per country. First, I removed all non-personal best results from the dataset. Then, I grouped by country and sliced the top 10 lowest results. The mean average was calculated using 'summarize'. 
 ```{r}
 # shows only the competitor's fastest average
 results_top10 <- results_tsv %>%
@@ -127,7 +124,8 @@ country_means <- results_top10 %>%
 ```
 
 
-## Independent Variable 2: Calculate number of 3x3 podium at World Championships
+## Independent Variable 2: Calculate number of 3x3 podiums at World Championships
+Next, the number of 3x3 podiums at World Championships was calculated for each country. I filtered the results_tsv to only world championship competitions and further filtered this down to only look for top 3 placements in the final round as that is how the WCA defines a podium. 
 ```{r}
 # filters for results at World Championship competitions
 podiums <- results_tsv %>%
@@ -148,6 +146,7 @@ podiums_per_country <- podiums %>%
 ```
 
 ## Independent Variable 3: Calculating Number of 3x3 average world records
+Next, the number of 3x3 average world records was calculated per country. World records were filtered from all results and then counted per country. 
 ```{r}
 # filters for 3x3 world records
 WRs <- results_tsv %>%
@@ -165,14 +164,15 @@ WRs_per_country <- WRs %>%
   
 ```
 ## Combining all variables
+All of the independent variables were joined together with the dependent variable into 1 dataframe. 
 ```{r}
 full_df <- counts %>%
   left_join(country_means, by = "iso3c") %>%
   left_join(podiums_per_country,by = "iso3c") %>%
   left_join(WRs_per_country, by = "iso3c") %>%
-  mutate(across(where(is.numeric), ~replace_na(., 0))) %>%
+  mutate(across(where(is.numeric), ~replace_na(., 0))) %>% # adds 0 to countries that were missing, as missing countries have 0 podiums and 0 world records
   select(countryId, comp_count, mean_average, podium_count, WR_count) %>%
-  mutate(countryId = replace_na(countryId, "Kosovo"))
+  mutate(countryId = replace_na(countryId, "Kosovo")) # the country code for Kosovo did not match 
   
 ```
 
@@ -221,8 +221,10 @@ leaflet(world_data) %>%
     opacity = 0.7,
     title = "Competition Count by Country",  
     position = "bottomright")
+```
+The interactive choropleth map below shows the dominance that the United States has over competition count.
 
-#table of countries with the most competitions
+```{r}
 top_countries <- counts %>%
   select(comp_count, countryId) %>% 
   arrange(desc(comp_count)) %>%   # sort from highest to lowest
@@ -233,7 +235,7 @@ kable(top_countries,
       caption = "Top 10 Countries by Number of Competitions")
 
 ```
-The United States has the most competitions by a large margin. 
+The United States has hosted 2,065 competitions. China, Brazil, India, and Australia round out the top 5. 
 
 ## Heat Map
 ```{r, message = F, warning = F, results = "hide"}
@@ -245,16 +247,17 @@ ggplot() +
   scale_fill_viridis_d(option = "plasma") +
   theme_minimal() +
   labs(
-    title = "Density Heatmap",
+    title = "WCA Competitions Density Heatmap",
     x = "Longitude",
     y = "Latitude",
     fill = "Density"
   ) +
   coord_sf()
 ```
-The heat map reveals that most competitions are clustered in the United States or Central Europe. 
+The heat map reveals that most competitions are clustered in the northeast region of the United States and Central Europe (Germany, Czechia, Austria). 
 
-## Linear Regression - Mean of top 10 3x3 averages per country and country count
+## Linear Regression - Mean of top 10 3x3 averages per country and competition count
+Below are the results of the linear regression between mean of top 3x3 averages per each country and competition count. 
 ```{r}
 #linear regression model
 model1 <- lm(comp_count ~ mean_average, data = full_df)
@@ -281,9 +284,10 @@ plot1 <- ggplot(full_df, aes(x = mean_average, y = comp_count)) +
 ggplotly(plot1, tooltip = "text")
 
 ```
-Scatter Plot using log scale: It is easy to see the negative relationship between the two variables here. 
+This interactive scatter plot using log scale and a fitted regression line clearly shows the negative relationship between mean of the top 10 3x3 averages and competition count. The inverse of this relationship is true and easier to interpret: countries with faster 3x3 averages have more competitions. 
 
-## Linear Regression - podiums per country and country count
+## Linear Regression - World Championship podiums per country and competition count
+Below are the results of the linear regression between World Championship podiums per each country and competition count.
 ```{r}
 
 top_podium_countries <- full_df %>%
@@ -294,14 +298,18 @@ top_podium_countries <- full_df %>%
 kable(top_podium_countries, 
       col.names = c("Podium Count", "Country"),
       caption = "Top 10 Countries by World Championship Podium Count")
+```
+10 countries have achieved 3x3 podiums at World Championships. Poland and the United states are tied for first with 5 podiums each. 
 
+```{r}
 model2 <- lm(comp_count ~ podium_count, data = full_df)
 summary(model2)
 
 ```
 World championship podiums are positively correlated with competition count. With each additional world championship podium, the competition count increases by 149 competitions. This result is significant at below the 0.001 level. This model has better fit than the between the mean of top 10 3x3 averages and competition count. 
 
-## Linear Regression - 3x3 average world records per country and country count
+## Linear Regression - 3x3 average world records per country and competition count
+Below are the results of the linear regression between 3x3 average world records per each country and competition count.
 ```{r}
 top_wr_countries <- full_df %>%
   select(WR_count, countryId) %>% 
@@ -311,12 +319,14 @@ top_wr_countries <- full_df %>%
 kable(top_wr_countries, 
       col.names = c("World Record Count", "Country"),
       caption = "Top 9 Countries by World Record Count")
+```
+Only 9 countries have achieved a 3x3 average world record. Australia leads this category with 13 world records. China is a close second with 11 world records. 
 
+```{r}
 model3 <- lm(comp_count ~ WR_count, data = full_df)
 summary(model3)
 
 ```
-
 3x3 World records are positively correlated with competition count. With each additional world record, the competition count increases by 51 competitions. This result is significant at below the 0.001 level. 
 
 # Conclusions
@@ -325,7 +335,7 @@ Overall, 3x3 speed is correlated with competition count. Countries with faster t
 
 The United States has by far the most competitions. The results of my linear regression models make a lot of sense as the World Cube Association was founded in the United States. Competitions are entirely volunteer run, so the United States was the first country to have organizers and WCA Delegates that hosted competitions. Organizers and Delegates need a lot of experience to run competitions, and the United States has that advantage over other countries. This also allowed the United States to develop a cubing culture early on, as cubing spreads locally through cube clubs and seeing other people solving cubes. 
 
-This allowed the United States to grow cubing earlier and faster than other countries. With a larger amount of competitors, a subset (10 people) of that larger amount is going to be faster at solving 3x3s than a country with a smaller number of competitors.
+This allowed the United States to grow cubing earlier and faster than other countries. With a larger amount of competitors, the fastest subset (10 people) of that larger amount is going to be faster at solving 3x3s than a country with a smaller number of competitors.
 
 World championship podiums can only be achieved every 2 years. The world championship competition is hosted by a country that bids (similar to the Olympics). Traveling to a multi-date world championship is often time consuming and expensive, which makes it inaccessible to some competitors even if they are talented enough to achieve a podium. This is why the top countries that have achieved world championship podiums are all relatively developed countries. 
 
