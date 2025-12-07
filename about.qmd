@@ -2,8 +2,4 @@
 title: "About"
 ---
 
-About this site
-
-```{r}
-1 + 1
-```
+This website houses my GEO 511: Spatial Data Science final project. I decided to use this as an opportunity to explore statistics in speedcubing, as I have been a competitive speedcuber for the past 10 years. 

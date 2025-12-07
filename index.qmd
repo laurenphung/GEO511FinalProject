@@ -2,9 +2,8 @@
 title: "Rubik’s Cube Competition Prevalence and Correlation with 3x3 Speed"
 author: "Lauren Phung"
 subtitle: "Are the fastest speedcubers the ones who have the most competitions near them?"
-date: December 4, 2025
+date: December 7, 2025
 date-format: long
-toc: true
 format:
   html:
     code-fold: true
