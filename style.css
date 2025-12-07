@@ -21,3 +21,29 @@ main.content {
   padding: 30px;
   border-radius: 15px;
 }
+
+#TOC {
+  background: rgba(255, 255, 255, 0.95);
+  padding: 20px;
+  border-radius: 15px;
+  margin-bottom: 20px;
+}
+
+nav#TOC ul {
+  list-style: none;
+  padding-left: 0;
+}
+
+nav#TOC li {
+  padding: 5px 0;
+}
+
+nav#TOC a {
+  color: #333;
+  text-decoration: none;
+}
+
+nav#TOC a:hover {
+  color: #0066cc;
+  font-weight: bold;
+}
